@@ -5,6 +5,8 @@ an AI agent that re-checks the official source, decides whether anything **mater
 changed, and flags it for a human to review — **without ever silently overwriting trusted
 guidance.**
 
+![Regulation Radar dashboard](docs/dashboard.png)
+
 ---
 
 ## In plain English (no tech background needed)
