@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Regulation Radar — Pet Toys 🐾</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐾</text></svg>" />
+  <!-- React + Babel served LOCALLY (vendored in frontend/vendor) so the app has no
+       external CDN dependency and works fully offline. No build step / npm still required. -->
+  <script src="/vendor/react.production.min.js"></script>
+  <script src="/vendor/react-dom.production.min.js"></script>
+  <script src="/vendor/babel.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:#fff7ee; --bg-spot:#ffeede; --card:#ffffff; --ink:#33303d; --muted:#948ea0;
+      --line:#f1e7d8; --teal:#11b3ab; --teal-dk:#0a8f89; --coral:#ff6f61; --coral-dk:#e85a4d;
+      --green:#27ae73; --amber:#f4a62a; --shadow:0 10px 30px rgba(120,90,40,.10);
+    }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; color:var(--ink);
+      font-family:'Nunito',-apple-system,Segoe UI,Roboto,sans-serif;
+      background:
+        radial-gradient(circle at 12% 18%, var(--bg-spot) 0 12px, transparent 13px),
+        radial-gradient(circle at 88% 70%, var(--bg-spot) 0 16px, transparent 17px),
+        var(--bg);
+    }
+    .wrap { max-width:1120px; margin:0 auto; padding:0 20px 70px; }
+
+    /* hero header */
+    .hero {
+      background:linear-gradient(120deg, var(--teal) 0%, #14b8b0 45%, var(--coral) 130%);
+      color:#fff; border-radius:0 0 28px 28px; padding:30px 28px 34px; margin-bottom:26px;
+      box-shadow:var(--shadow); position:relative; overflow:hidden;
+    }
+    .hero::after {
+      content:"🐾"; position:absolute; right:-10px; bottom:-26px; font-size:150px;
+      opacity:.12; transform:rotate(-18deg);
+    }
+    .hero-inner { max-width:1120px; margin:0 auto; }
+    .brand { display:flex; align-items:center; gap:12px; }
+    .brand .logo {
+      width:54px; height:54px; border-radius:16px; background:rgba(255,255,255,.22);
+      display:grid; place-items:center; font-size:30px; backdrop-filter:blur(2px);
+    }
+    h1 { font-family:'Baloo 2',cursive; font-size:30px; margin:0; font-weight:800; letter-spacing:.2px; }
+    .sub { margin:4px 0 0; font-size:14px; opacity:.92; font-weight:600; }
+
+    .banner {
+      background:#fff3ef; border:1px solid #ffd9d2; color:var(--coral-dk);
+      border-radius:14px; padding:13px 18px; margin-bottom:20px; font-size:14px; font-weight:700;
+      box-shadow:var(--shadow);
+    }
+    .card {
+      background:var(--card); border:1px solid var(--line); border-radius:18px;
+      padding:20px 22px; margin-bottom:20px; box-shadow:var(--shadow);
+    }
+    .card-title { font-family:'Baloo 2',cursive; font-weight:700; font-size:18px; margin:0 0 10px; display:flex; align-items:center; gap:8px; }
+
+    table { width:100%; border-collapse:separate; border-spacing:0; }
+    th { text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+         color:var(--muted); font-weight:800; padding:6px 12px 12px; border-bottom:2px solid var(--line); }
+    td { padding:16px 12px; border-bottom:1px solid var(--line); font-size:14px; vertical-align:top; line-height:1.45; }
+    tr:last-child td { border-bottom:none; }
+    td.col-status, td.col-actions { vertical-align:middle; white-space:nowrap; }
+    th.col-status, td.col-status { width:120px; }
+    th.col-actions, td.col-actions { width:168px; }
+    .name { font-weight:800; font-family:'Baloo 2',cursive; font-size:15px; color:var(--teal-dk); }
+    a { color:var(--teal-dk); font-weight:700; }
+
+    .pill { display:inline-flex; align-items:center; gap:5px; padding:5px 12px; border-radius:999px;
+            font-size:12px; font-weight:800; text-transform:capitalize; white-space:nowrap; }
+    .pill::before { content:""; width:7px; height:7px; border-radius:50%; }
+    .pill.current { background:#e3f7ee; color:#1c8c5b; }
+    .pill.current::before { background:var(--green); }
+    .pill.changed, .pill.needs-review { background:#fdf0d8; color:#b9791a; }
+    .pill.changed::before, .pill.needs-review::before { background:var(--amber); }
+
+    .muted { color:var(--muted); font-size:12.5px; font-weight:600; }
+    .reviewed { color:var(--green); font-size:12px; font-weight:800; margin-top:6px; }
+
+    button { background:var(--teal); color:#fff; border:none; padding:9px 16px; border-radius:999px;
+             font-size:13px; cursor:pointer; font-weight:800; font-family:'Nunito',sans-serif;
+             box-shadow:0 4px 12px rgba(17,179,171,.28); transition:transform .08s, filter .15s; }
+    button:hover { filter:brightness(1.06); transform:translateY(-1px); }
+    button:active { transform:translateY(0); }
+    button:disabled { opacity:.45; cursor:default; box-shadow:none; transform:none; }
+    button.ghost { background:#fff; border:2px solid var(--line); color:var(--ink); box-shadow:none; }
+    button.ghost:hover { border-color:var(--coral); color:var(--coral-dk); }
+    button.approve { background:var(--green); box-shadow:0 4px 12px rgba(39,174,115,.3); }
+    button.reject { background:#fff; border:2px solid var(--coral); color:var(--coral-dk); box-shadow:none; }
+
+    .review { margin-top:14px; background:#fffaf0; border:1.5px solid #ffe3b0; border-radius:14px; padding:18px; }
+    .review-head { font-family:'Baloo 2',cursive; font-weight:700; font-size:15px; margin-bottom:4px; }
+    .diff { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:12px 0 14px; }
+    .diff .col { background:#fff; border:1px solid var(--line); border-radius:12px; padding:13px 14px; }
+    .diff .col.proposed { border-color:#bfe9d8; background:#f4fbf8; }
+    .diff .lbl { font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); margin-bottom:7px; font-weight:800; }
+    .old { color:#c0573f; font-size:13.5px; line-height:1.5; }
+    .new { color:#1c8c5b; font-size:13.5px; line-height:1.5; font-weight:700; }
+
+    .runs { list-style:none; padding:0; margin:0; }
+    .runs .empty { color:var(--muted); font-weight:600; font-size:13px; padding:6px 0; }
+    .log-item { display:flex; align-items:flex-start; gap:13px; padding:13px 4px; border-bottom:1px dashed var(--line); }
+    .log-item:last-child { border-bottom:none; }
+    .log-icon { flex:none; width:28px; height:28px; border-radius:50%; display:grid; place-items:center;
+                font-size:14px; font-weight:900; color:#fff; margin-top:1px; }
+    .k-ok { background:var(--green); } .k-ok2 { background:var(--teal); }
+    .k-info { background:#9aa7c2; } .k-warn { background:var(--amber); } .k-err { background:var(--coral); }
+    .log-main { flex:1; min-width:0; }
+    .log-head { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .log-label { font-weight:800; color:var(--ink); font-size:13.5px; }
+    .log-sub { color:var(--muted); font-size:12.5px; font-weight:600; margin-top:3px; line-height:1.45; }
+    .log-time { flex:none; color:var(--muted); font-size:12px; font-weight:700; white-space:nowrap; padding-top:4px; }
+    .chip { font-size:10.5px; font-weight:800; background:#eef4f3; color:var(--teal-dk); padding:2px 9px; border-radius:999px; }
+    .chip-human { background:#fff0ec; color:var(--coral-dk); }
+
+    .row-actions { display:flex; gap:9px; align-items:center; flex-wrap:wrap; }
+    .col-actions .row-actions { flex-direction:column; align-items:stretch; gap:8px; }
+    .col-actions .row-actions button { width:100%; text-align:center; }
+    .toast {
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+      background:var(--ink); color:#fff; padding:13px 22px; border-radius:999px; font-size:13.5px;
+      font-weight:700; box-shadow:0 10px 30px rgba(0,0,0,.25); z-index:50;
+    }
+    .foot { text-align:center; color:var(--muted); font-size:12.5px; font-weight:600; margin-top:8px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <!-- JSX source kept in a non-executing tag; we compile it ourselves below with the
+       CLASSIC runtime so it uses the global React.createElement (no ES-module imports). -->
+  <script type="text/jsx-source" id="app-source">
+const { useState, useEffect, useCallback } = React;
+const api = (path, opts) => fetch(path, opts).then(r => r.json());
+
+const KINDS = {
+  no_change:    { icon: "✓", label: "Checked — no change",        cls: "k-info" },
+  non_material: { icon: "↻", label: "Minor change auto-accepted", cls: "k-info" },
+  material:     { icon: "!", label: "Change flagged for review",  cls: "k-warn" },
+  fetch_failed: { icon: "✕", label: "Fetch failed — nothing updated", cls: "k-err" },
+  approved:     { icon: "✓", label: "Human approved change",      cls: "k-ok2" },
+  rejected:     { icon: "✕", label: "Human rejected change",      cls: "k-err" },
+};
+
+function fmtTime(iso) {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return iso;
+  return d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
+
+function StatusPill({ status }) {
+  const cls = "pill " + status.replace(/\s+/g, "-");
+  return <span className={cls}>{status}</span>;
+}
+
+function LogItem({ run }) {
+  const k = KINDS[run.kind] || { icon: "•", label: run.outcome, cls: "k-info" };
+  return (
+    <li className="log-item">
+      <span className={"log-icon " + k.cls}>{k.icon}</span>
+      <div className="log-main">
+        <div className="log-head">
+          <span className="log-label">{k.label}</span>
+          {run.reg_part && <span className="chip">Part {run.reg_part}</span>}
+          {run.actor === "human" && <span className="chip chip-human">you</span>}
+        </div>
+        <div className="log-sub">{run.outcome}</div>
+      </div>
+      <span className="log-time">{fmtTime(run.started_at)}</span>
+    </li>
+  );
+}
+
+function ReviewPanel({ reg, onApprove, onReject, busy }) {
+  return (
+    <div className="review">
+      <div className="review-head">🐶 Agent proposed a change — your call</div>
+      <div className="muted" style={{marginBottom:8}}>Why: {reg.pending_reason}</div>
+      <div className="diff">
+        <div className="col">
+          <div className="lbl">Current guidance (in use)</div>
+          <div className="old">{reg.plain_summary}</div>
+        </div>
+        <div className="col proposed">
+          <div className="lbl">Proposed guidance</div>
+          <div className="new">{reg.pending_summary || "(no new guidance drafted)"}</div>
+        </div>
+      </div>
+      <div className="row-actions">
+        <button className="approve" disabled={busy} onClick={() => onApprove(reg.id)}>✓ Approve change</button>
+        <button className="reject" disabled={busy} onClick={() => onReject(reg.id)}>Reject (keep current)</button>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [regs, setRegs] = useState([]);
+  const [runs, setRuns] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [toast, setToast] = useState(null);
+
+  const refresh = useCallback(async () => {
+    setRegs(await api("/api/regulations"));
+    setRuns(await api("/api/runs"));
+  }, []);
+
+  useEffect(() => { refresh(); }, [refresh]);
+
+  const flash = (m) => { setToast(m); setTimeout(() => setToast(null), 4000); };
+
+  const act = async (path, msg) => {
+    setBusy(true);
+    try {
+      const res = await api(path, { method: "POST" });
+      await refresh();
+      flash(msg || res.outcome || "Done");
+    } finally { setBusy(false); }
+  };
+
+  const needsReview = regs.filter(r => r.status === "needs review").length;
+
+  return (
+    <div>
+      <div className="hero">
+        <div className="hero-inner">
+          <div className="brand">
+            <div className="logo">🦴</div>
+            <div>
+              <h1>Regulation Radar</h1>
+              <p className="sub">Keeping BarkBox pet toys compliant · sourced live from the eCFR API</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="wrap">
+        {needsReview > 0 &&
+          <div className="banner">🔔 {needsReview} regulation{needsReview>1?"s":""} changed since you last looked — give it a sniff below.</div>}
+
+        <div className="card">
+          <table>
+            <thead><tr>
+              <th>Regulation</th><th>Applies to</th><th>Plain-English guidance</th>
+              <th>Source</th><th>Last checked</th><th className="col-status">Status</th><th className="col-actions"></th>
+            </tr></thead>
+            <tbody>
+              {regs.map(r => (
+                <React.Fragment key={r.id}>
+                  <tr>
+                    <td className="name">{r.name}</td>
+                    <td>{r.applies_to}</td>
+                    <td>{r.plain_summary}
+                      {r.human_reviewed ? <div className="reviewed">✓ human-reviewed {r.last_reviewed||""}</div> : null}
+                    </td>
+                    <td><a href={r.source_url} target="_blank" rel="noreferrer">{r.source_label}</a></td>
+                    <td className="muted">{r.last_checked || "never"}</td>
+                    <td className="col-status"><StatusPill status={r.status} /></td>
+                    <td className="col-actions">
+                      <div className="row-actions">
+                        <button disabled={busy} onClick={() => act(`/api/regulations/${r.id}/check`)}>🔄 Run check now</button>
+                        <button className="ghost" disabled={busy}
+                          title="Demo: rewind baseline to pre-2009 600ppm so a check detects the tightening to 90ppm"
+                          onClick={() => act(`/api/regulations/${r.id}/simulate-drift`, "Baseline rewound — now Run check to detect drift")}>Simulate drift</button>
+                      </div>
+                    </td>
+                  </tr>
+                  {r.status === "needs review" &&
+                    <tr><td colSpan="7" style={{paddingTop:0}}>
+                      <ReviewPanel reg={r} busy={busy}
+                        onApprove={(id) => act(`/api/regulations/${id}/approve`, "Approved — guidance updated 🎉")}
+                        onReject={(id) => act(`/api/regulations/${id}/reject`, "Rejected — current guidance kept")} />
+                    </td></tr>}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="card">
+          <div className="card-title">📋 Activity log <span className="muted" style={{fontWeight:700}}>· agent checks &amp; human decisions</span></div>
+          <ul className="runs">
+            {runs.length === 0 && <li className="empty">No activity yet — hit “Run check now” to wake the agent.</li>}
+            {runs.map(run => <LogItem key={run.id} run={run} />)}
+          </ul>
+        </div>
+
+        <div className="foot">🐾 fetch → diff → decide → update · agent proposes, human approves</div>
+      </div>
+
+      {toast && <div className="toast">{toast}</div>}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+  <script>
+    // Compile the JSX above with the classic runtime, then run it. Done manually (rather
+    // than Babel's auto-runner) because newer Babel defaults to the automatic JSX runtime,
+    // which emits an `import` that a non-module browser script can't execute.
+    (function () {
+      var src = document.getElementById("app-source").textContent;
+      var out = Babel.transform(src, { presets: [["react", { runtime: "classic" }]] }).code;
+      (0, eval)(out);
+    })();
+  </script>
+</body>
+</html>
