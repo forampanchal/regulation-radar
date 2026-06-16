@@ -65,6 +65,7 @@ def approve(reg_id: int):
         pending_excerpt=None,
         pending_hash=None,
         pending_reason=None,
+        pending_products=None,
     )
     db.log_run(
         reg_id, "approved",
@@ -92,6 +93,7 @@ def reject(reg_id: int):
         pending_excerpt=None,
         pending_hash=None,
         pending_reason=None,
+        pending_products=None,
     )
     db.log_run(
         reg_id, "rejected",

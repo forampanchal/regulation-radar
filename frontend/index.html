@@ -95,6 +95,8 @@
 
     .review { margin-top:14px; background:#fffaf0; border:1.5px solid #ffe3b0; border-radius:14px; padding:18px; }
     .review-head { font-family:'Baloo 2',cursive; font-weight:700; font-size:15px; margin-bottom:4px; }
+    .affected { font-size:13px; background:#eef7f5; border:1px solid #cfe9e2; color:var(--teal-dk);
+                border-radius:8px; padding:8px 12px; margin-bottom:10px; }
     .diff { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:12px 0 14px; }
     .diff .col { background:#fff; border:1px solid var(--line); border-radius:12px; padding:13px 14px; }
     .diff .col.proposed { border-color:#bfe9d8; background:#f4fbf8; }
@@ -180,6 +182,8 @@ function ReviewPanel({ reg, onApprove, onReject, busy }) {
     <div className="review">
       <div className="review-head">🐶 Agent proposed a change — your call</div>
       <div className="muted" style={{marginBottom:8}}>Why: {reg.pending_reason}</div>
+      {reg.pending_products &&
+        <div className="affected">🎯 Product lines affected (classifier agent): <b>{reg.pending_products}</b></div>}
       <div className="diff">
         <div className="col">
           <div className="lbl">Current guidance (in use)</div>

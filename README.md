@@ -29,6 +29,10 @@ guidance on its own. It puts the change in a "**Needs review**" state and shows 
 and every human decision is recorded in an **activity log** — so there's always a clear
 trail of who changed what and when.
 
+When a change is flagged, a **second AI step** also lists **which BarkBox product lines** the
+change affects (e.g. a lead-coating change → painted/coated toys), so the right team knows
+what to re-check.
+
 Think of it as a **smoke detector for regulations**: it watches constantly and alerts a
 human, but a human decides what to do.
 
@@ -141,6 +145,12 @@ columns; the visible `plain_summary` changes **only** when a human clicks **Appr
 Every agent check **and** every human approve/reject is recorded in the **activity log**
 (`agent_runs`), tagged by actor (agent vs human) and outcome — a real audit trail.
 
+## Second agent: product impact
+When a material change is staged, a small **second agent** (`classify_affected_products` in
+[`backend/agent.py`](backend/agent.py)) maps the change to the **BarkBox product lines** it
+affects — LLM-reasoned over product descriptions when a key is set, else a deterministic
+tag match. The result shows in the review panel so a human knows exactly what to re-check.
+
 ## Data model
 [`backend/db.py`](backend/db.py), SQLite:
 - **`regulations`** — one row per rule: the live guidance, source link, status, content hash,
@@ -169,7 +179,8 @@ Every agent check **and** every human approve/reject is recorded in the **activi
 - **Real scheduler** (cron / APScheduler) so checks run automatically + a real "changed since
   you last looked" count.
 - **Section-level diffing & a richer diff view** — highlight the exact changed clause.
-- **A second "which products are affected?" classifier agent.**
+- **Smarter product classifier** — the second agent currently maps a changed rule to
+  affected product lines from a small in-code catalog; next would be a real product DB + per-SKU mapping.
 - **Versioned guidance history** (who approved what, when, and the prior text).
 - **Eval harness** for the materiality judgment (labeled changed/unchanged pairs) to measure
   precision/recall before trusting it.

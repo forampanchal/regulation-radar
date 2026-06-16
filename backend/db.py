@@ -52,7 +52,8 @@ def init_db():
                 pending_summary TEXT,
                 pending_excerpt TEXT,
                 pending_hash    TEXT,
-                pending_reason  TEXT                  -- why the agent thinks it changed
+                pending_reason  TEXT,                 -- why the agent thinks it changed
+                pending_products TEXT                 -- 2nd agent: BarkBox product lines affected
             );
 
             CREATE TABLE IF NOT EXISTS agent_runs (

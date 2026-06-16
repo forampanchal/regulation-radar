@@ -155,6 +155,12 @@ def update_node(state: AgentState) -> AgentState:
         return {**state, "outcome": outcome}
 
     # GUARD 2: material change -> STAGE a proposal, do NOT overwrite plain_summary.
+    # Second agent: figure out which BarkBox product lines this change touches.
+    affected = classify_affected_products(
+        state.get("source_part") or "1303",
+        state.get("reason", ""),
+        state.get("proposed_summary") or "",
+    )
     db.update_regulation(
         reg_id,
         last_checked=db.now_iso(),
@@ -163,6 +169,7 @@ def update_node(state: AgentState) -> AgentState:
         pending_excerpt=state["fetched_text"],
         pending_hash=state["fetched_hash"],
         pending_reason=state.get("reason"),
+        pending_products=", ".join(affected) if affected else None,
     )
     outcome = f"Material change detected -> flagged 'needs review'. {state.get('reason')}"
     db.log_run(reg_id, "material", outcome, changed=True, material=True, model_mode=mode)
@@ -222,6 +229,57 @@ def _stub_summary(limits) -> str:
         "The source text for this regulation changed — review the updated requirement "
         "and confirm BarkBox products still comply."
     )
+
+
+# --------------------------------------------------------------------------- #
+# Second agent: classify which BarkBox product lines a changed rule affects.
+# --------------------------------------------------------------------------- #
+PRODUCTS = [
+    {"name": "Painted plush squeaker toys",
+     "desc": "soft toys with painted/coated surfaces and a small squeaker insert",
+     "tags": ["coating", "small_parts"]},
+    {"name": "Coated rubber chew toys",
+     "desc": "durable rubber toys with a colored surface coating",
+     "tags": ["coating"]},
+    {"name": "Rope tug toys",
+     "desc": "woven cotton rope, no coating or detachable parts",
+     "tags": []},
+    {"name": "Puppy starter mini-toys",
+     "desc": "small toys sized for puppies, used in homes with young children",
+     "tags": ["small_parts"]},
+    {"name": "Treat-dispensing balls",
+     "desc": "hard plastic balls with a small removable cap",
+     "tags": ["small_parts"]},
+]
+# Which product attribute each rule is fundamentally about (used by the no-LLM stub).
+RULE_TAG = {"1303": "coating", "1501": "small_parts"}
+
+
+def classify_affected_products(part: str, reason: str, summary: str) -> list:
+    """Given a *changed* rule, decide which BarkBox product lines it affects.
+
+    A small second agent: LLM if a key is set (reasons over product descriptions),
+    else a deterministic tag match. Returns a list of product names.
+    """
+    names = [p["name"] for p in PRODUCTS]
+    if _llm_provider():
+        try:
+            listing = "\n".join(f"- {p['name']}: {p['desc']}" for p in PRODUCTS)
+            prompt = (
+                "A pet-toy regulation just changed. Decide which BarkBox product lines are "
+                "affected by the change.\n\n"
+                f"CHANGE: {reason}\nUPDATED GUIDANCE: {summary}\n\n"
+                f"PRODUCT LINES:\n{listing}\n\n"
+                'Respond with ONLY JSON: {"affected": ["<exact product name>", ...]}'
+            )
+            data = _parse_json(_llm_complete(prompt, max_tokens=250))
+            picked = [n for n in (data.get("affected") or []) if n in names]
+            if picked:
+                return picked
+        except Exception:  # noqa: BLE001 - fall back to the tag heuristic
+            pass
+    tag = RULE_TAG.get(part)
+    return [p["name"] for p in PRODUCTS if tag and tag in p["tags"]]
 
 
 # --------------------------------------------------------------------------- #
